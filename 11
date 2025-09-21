@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Week 1 Creative Tech</title>
+</head>
+<body>
+    <h1>Welcome to Week 1 Creative Tech</h1>
+    <p>Lorem, ipsum dolor sit amet <a href="https://www.google.com/"target="_blank">consectetur adipisicing</a> elit. Beatae, deserunt? Tenetur natus, nesciunt amet illum mollitia officia accusamus totam in odit. Fuga, accusantium? Rem corrupti labore minima, commodi ratione expedita?</p>
+    <img src="https://www.att.com/scmsassets/global/devices/phones/apple/apple-iphone-17-pro-max/defaultimage/deep-blue-hero-zoom.png" alt="iPhone 17 pro" />
+</body>
+</html>
