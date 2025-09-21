@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ASCII Bus</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: #0f1724;
+      color: #e6eef8;
+      font-family: monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .container {
+      background: #07192b;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(2,6,23,0.7);
+      padding: 20px;
+      width: min(95%, 1100px);
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+      align-items: center;
+      font-size: 14px;
+      color: #cfe8ff;
+    }
+    .controls input[type="range"] {
+      width: 200px;
+    }
+    pre {
+      margin: 0;
+      padding: 15px;
+      background: #0b1a30;
+      border-radius: 8px;
+      overflow: auto;
+      font-size: 18px;
+      line-height: 1;
+      color: #e6eef8;
+      white-space: pre;
+    }
+    button {
+      background: linear-gradient(90deg, #f59e0b, #ffb86b);
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      color: #072029;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="controls">
+      <label for="size">Font size:</label>
+      <input id="size" type="range" min="10" max="40" value="18" />
+      <button id="copy">Copy ASCII</button>
+      <button id="download">Download TXT</button>
+    </div>
+
+    <pre id="bus">
+               _________________________________
+              /  _  _  _  _  _  _  _  _  _  _  \
+             /  / \_________________________/ \  \
+            /  /  /  /  /  /  /  /  /  /  /  /  /  \
+           |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+           |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+           |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+           |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+           |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+           |  |  |  |                       |  |  |  |
+           |  |  |  |  ┌───┐     ┌───┐     ┌──┐|  |  |
+           |  |  |  |  │   │     │   │     │  │|  |  |
+           |  |  |  |  │   │     │   │     │  │|  |  |
+           |  |  |  |  └───┘     └───┘     └──┘|  |  |
+        ___|  |  |  |_____________________________|  |___
+       /   |  |  | /  _  _  _  _  _  _  _  _  _  _  \ |   \
+      /_______________________________________________\|    \
+     |  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  |     |
+     | | | | | | | | | | | | | | | | | | | | | | | | |     |
+     | |_| |_| |_| |_| |_| |_| |_| |_| |_| |_| |_| |_|     |
+     |                                                 [] |
+     |   [DRIVER]                       BUS #: 1023        |
+     |  _   _                               ________       |
+     | /O\ /O\                             /  ____  \      |
+     |( O )( O )---------------------------(  |____|  )-----|
+     '-----------------------------------------------  ----'
+      (o)                                         (o)
+      /_\                                         /_\
+    </pre>
+  </div>
+
+  <script>
+    const range = document.getElementById('size');
+    const bus = document.getElementById('bus');
+    const copyBtn = document.getElementById('copy');
+    const downloadBtn = document.getElementById('download');
+
+    range.addEventListener('input', e => {
+      bus.style.fontSize = e.target.value + 'px';
+    });
+
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(bus.textContent);
+        copyBtn.textContent = 'Copied ✓';
+        setTimeout(() => copyBtn.textContent = 'Copy ASCII', 1500);
+      } catch {
+        copyBtn.textContent = 'Failed';
+      }
+    });
+
+    downloadBtn.addEventListener('click', () => {
+      const text = bus.textContent;
+      const blob = new Blob([text], {type: 'text/plain'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'ascii-bus.txt';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+  </script>
+</body>
+</html>
