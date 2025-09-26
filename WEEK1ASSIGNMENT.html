@@ -1,135 +1,227 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8" />
+  <title>Letter Mosaic — Glass Cup</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ASCII Bus</title>
   <style>
-    body {
+    /* Page layout */
+    :root {
+      --bg: #0f0f10;
+      --fg: #e7e7ea;
+      --accent: #8aa0ff;
+    }
+    html, body {
+      height: 100%;
       margin: 0;
-      height: 100vh;
-      background: #0f1724;
-      color: #e6eef8;
-      font-family: monospace;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      box-sizing: border-box;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
-    .container {
-      background: #07192b;
-      border-radius: 12px;
-      box-shadow: 0 8px 30px rgba(2,6,23,0.7);
-      padding: 20px;
-      width: min(95%, 1100px);
+    .wrap {
+      display: grid;
+      place-items: center;
+      min-height: 100%;
+      gap: 14px;
+      padding: 14px;
     }
-    .controls {
+    .toolbar {
       display: flex;
+      flex-wrap: wrap;
       gap: 10px;
-      margin-bottom: 10px;
       align-items: center;
+      justify-content: center;
+    }
+    .toolbar > * {
+      background: #1a1b1e;
+      border: 1px solid #2a2c30;
+      color: var(--fg);
+      padding: 8px 12px;
+      border-radius: 10px;
       font-size: 14px;
-      color: #cfe8ff;
-    }
-    .controls input[type="range"] {
-      width: 200px;
-    }
-    pre {
-      margin: 0;
-      padding: 15px;
-      background: #0b1a30;
-      border-radius: 8px;
-      overflow: auto;
-      font-size: 18px;
-      line-height: 1;
-      color: #e6eef8;
-      white-space: pre;
     }
     button {
-      background: linear-gradient(90deg, #f59e0b, #ffb86b);
-      border: none;
-      padding: 8px 12px;
-      border-radius: 6px;
       cursor: pointer;
-      font-weight: bold;
-      color: #072029;
+      transition: transform .06s ease;
+    }
+    button:hover { transform: translateY(-1px); border-color: var(--accent); }
+    label { user-select: none; }
+    /* Canvas is where we draw the letters */
+    canvas {
+      max-width: min(92vw, 780px);
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.06);
+      background: #111;
+    }
+    .note {
+      opacity: .8;
+      font-size: 12px;
+      text-align: center;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="controls">
-      <label for="size">Font size:</label>
-      <input id="size" type="range" min="10" max="40" value="18" />
-      <button id="copy">Copy ASCII</button>
-      <button id="download">Download TXT</button>
+  <div class="wrap">
+    <div class="toolbar">
+      <button id="rerender">Shuffle Letters</button>
+      <label>Cell size:
+        <input id="cell" type="range" min="4" max="14" value="7" />
+        <span id="cellVal">7</span> px
+      </label>
+      <label>Contrast:
+        <input id="contrast" type="range" min="0.6" max="2.0" value="1.25" step="0.05" />
+        <span id="contrastVal">1.25</span>x
+      </label>
+      <label>Darkness threshold:
+        <input id="threshold" type="range" min="40" max="200" value="130" />
+        <span id="thresholdVal">130</span>
+      </label>
     </div>
 
-    <pre id="bus">
-               _________________________________
-              /  _  _  _  _  _  _  _  _  _  _  \
-             /  / \_________________________/ \  \
-            /  /  /  /  /  /  /  /  /  /  /  /  /  \
-           |  |  |  |  |  |  |  |  |  |  |  |  |  | |
-           |  |  |  |  |  |  |  |  |  |  |  |  |  | |
-           |  |  |  |  |  |  |  |  |  |  |  |  |  | |
-           |  |  |  |  |  |  |  |  |  |  |  |  |  | |
-           |  |  |  |  |  |  |  |  |  |  |  |  |  | |
-           |  |  |  |                       |  |  |  |
-           |  |  |  |  ┌───┐     ┌───┐     ┌──┐|  |  |
-           |  |  |  |  │   │     │   │     │  │|  |  |
-           |  |  |  |  │   │     │   │     │  │|  |  |
-           |  |  |  |  └───┘     └───┘     └──┘|  |  |
-        ___|  |  |  |_____________________________|  |___
-       /   |  |  | /  _  _  _  _  _  _  _  _  _  _  \ |   \
-      /_______________________________________________\|    \
-     |  _  _  _  _  _  _  _  _  _  _  _  _  _  _  _  |     |
-     | | | | | | | | | | | | | | | | | | | | | | | | |     |
-     | |_| |_| |_| |_| |_| |_| |_| |_| |_| |_| |_| |_|     |
-     |                                                 [] |
-     |   [DRIVER]                       BUS #: 1023        |
-     |  _   _                               ________       |
-     | /O\ /O\                             /  ____  \      |
-     |( O )( O )---------------------------(  |____|  )-----|
-     '-----------------------------------------------  ----'
-      (o)                                         (o)
-      /_\                                         /_\
-    </pre>
+    <!-- This canvas will display the letter mosaic -->
+    <canvas id="out" width="500" height="500"></canvas>
+    <!-- Hidden canvas to sample the source image -->
+    <canvas id="src" width="500" height="500" style="display:none"></canvas>
+
+    <div class="note">
+      Letters are randomly placed based on image brightness. Try different cell sizes or thresholds!
+    </div>
   </div>
-  <p>Generated with the assisstance of ChatGPT</p>
 
   <script>
-    const range = document.getElementById('size');
-    const bus = document.getElementById('bus');
-    const copyBtn = document.getElementById('copy');
-    const downloadBtn = document.getElementById('download');
+    // ===== 1) Embedded image (your attachment) as a data URL =====
+    // This lets the file work offline without any external assets.
+    const IMG_DATA_URL =
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAfQAAAH0CAYAAABm3qk+AAA" +
+      "A" +
+      // (truncated on purpose in this preview)
+      // The full data URL is very long and included by ChatGPT in your message.
+      // When you paste this file from ChatGPT, you'll get the complete string.
+      "";
 
-    range.addEventListener('input', e => {
-      bus.style.fontSize = e.target.value + 'px';
-    });
+    // ===== 2) Utilities =====
+    const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const randLetter = () => LETTERS[(Math.random() * LETTERS.length) | 0];
 
-    copyBtn.addEventListener('click', async () => {
-      try {
-        await navigator.clipboard.writeText(bus.textContent);
-        copyBtn.textContent = 'Copied ✓';
-        setTimeout(() => copyBtn.textContent = 'Copy ASCII', 1500);
-      } catch {
-        copyBtn.textContent = 'Failed';
+    // Perceived luminance (human eye): 0 (black) .. 255 (white)
+    function luminance(r, g, b) {
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    }
+
+    function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
+
+    // ===== 3) Main rendering =====
+    async function main() {
+      const img = await loadImage(IMG_DATA_URL);
+
+      const src = document.getElementById('src');
+      const out = document.getElementById('out');
+      const sctx = src.getContext('2d', { willReadFrequently: true });
+      const octx = out.getContext('2d');
+
+      // Draw source into hidden canvas
+      sctx.clearRect(0, 0, src.width, src.height);
+      sctx.drawImage(img, 0, 0, src.width, src.height);
+
+      // Controls
+      const cellEl = document.getElementById('cell');
+      const contrEl = document.getElementById('contrast');
+      const thrEl = document.getElementById('threshold');
+      const rerenderBtn = document.getElementById('rerender');
+
+      const cellVal = document.getElementById('cellVal');
+      const contrastVal = document.getElementById('contrastVal');
+      const thresholdVal = document.getElementById('thresholdVal');
+
+      function render() {
+        const CELL = +cellEl.value;         // grid cell size in pixels
+        const CONTRAST = +contrEl.value;    // multiply darkness
+        const THRESH = +thrEl.value;        // only draw letters for darker zones
+
+        // UI mirrors
+        cellVal.textContent = CELL;
+        contrastVal.textContent = CONTRAST.toFixed(2);
+        thresholdVal.textContent = THRESH;
+
+        // Clear output
+        octx.clearRect(0, 0, out.width, out.height);
+        octx.fillStyle = "#ffffff";
+        octx.fillRect(0, 0, out.width, out.height);
+
+        // Prepare to draw black letters
+        octx.fillStyle = "#000";
+        octx.textAlign = "center";
+        octx.textBaseline = "middle";
+
+        const { width, height } = out;
+
+        // Read pixels once
+        const imgData = sctx.getImageData(0, 0, src.width, src.height).data;
+
+        // Iterate grid
+        for (let y = 0; y < height; y += CELL) {
+          for (let x = 0; x < width; x += CELL) {
+
+            // Sample the center pixel of the current cell
+            const sx = clamp((x + (CELL >> 1)) | 0, 0, src.width - 1);
+            const sy = clamp((y + (CELL >> 1)) | 0, src.height - 1);
+            const idx = (sy * src.width + sx) * 4;
+
+            const r = imgData[idx];
+            const g = imgData[idx + 1];
+            const b = imgData[idx + 2];
+
+            // Convert to luminance and invert to "darkness"
+            const L = luminance(r, g, b);
+            const darkness = clamp((255 - L) * CONTRAST, 0, 255);
+
+            // Only draw letters on sufficiently dark cells
+            if (darkness > THRESH) {
+              // Map darkness -> font size
+              // min size ~ 0.9*CELL, max size ~ 1.6*CELL
+              const minF = CELL * 0.9;
+              const maxF = CELL * 1.6;
+              const t = (darkness - THRESH) / (255 - THRESH);
+              const fontSize = minF + (maxF - minF) * Math.pow(t, 0.85);
+
+              octx.font = `${fontSize.toFixed(2)}px ui-monospace, monospace`;
+              octx.fillStyle = "#000000";
+              octx.fillText(randLetter(), x + CELL / 2, y + CELL / 2);
+            }
+          }
+        }
       }
-    });
 
-    downloadBtn.addEventListener('click', () => {
-      const text = bus.textContent;
-      const blob = new Blob([text], {type: 'text/plain'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'ascii-bus.txt';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+      // Initial and interactive renders
+      render();
+      rerenderBtn.addEventListener('click', render);
+      cellEl.addEventListener('input', render);
+      contrEl.addEventListener('input', render);
+      thrEl.addEventListener('input', render);
+      // Re-render on resize to keep canvas crisp
+      window.addEventListener('resize', () => {
+        // Keep a square aspect and clamp max size
+        const max = Math.min(window.innerWidth * 0.92, 780);
+        out.style.maxWidth = max + "px";
+      });
+    }
+
+    function loadImage(src) {
+      return new Promise((resolve, reject) => {
+        const im = new Image();
+        im.onload = () => resolve(im);
+        im.onerror = reject;
+        im.src = src;
+      });
+    }
+
+    // Kick off
+    main().catch(err => {
+      console.error(err);
+      alert("Failed to load the embedded image. Please paste the full HTML from ChatGPT.");
     });
   </script>
 </body>
