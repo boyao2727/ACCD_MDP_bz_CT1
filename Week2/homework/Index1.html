@@ -52,6 +52,79 @@
             padding: 0;
         }
 
+        /* === Image Gallery === */
+
+        .gallery {
+        max-width: 960px;
+        margin: 24px auto;
+        padding: 16px;
+        }
+
+        .gallery .thumbs {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-bottom: 16px;
+        }
+
+        .gallery .thumbs img {
+        width: 100%;
+        aspect-ratio: 1/1;
+        object-fit: cover;
+        border: 2px solid transparent;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: transform .15s ease, border-color .15s ease;
+        }
+
+        .gallery .thumbs img:hover,
+        .gallery .thumbs img[aria-current="true"] {
+        transform: translateY(-2px);
+        border-color: rgb(131, 187, 181);
+        }
+
+        .gallery .viewer {
+        position: relative;
+        width: 100%;
+        background: #f3f3f3;
+        border-radius: 12px;
+        overflow: hidden;
+        }
+
+        .gallery .viewer img {
+        width: 100%;
+        display: block;
+        max-height: 520px;
+        object-fit: contain;
+        background: #fff;
+        }
+
+        .gallery .controls {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        padding: 10px 0 0;
+        }
+
+        .gallery button {
+        border: none;
+        padding: 8px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        background: rgb(131, 187, 181);
+        color: #fff;
+        }
+
+        .gallery button[disabled] {
+        opacity: .5;
+        cursor: not-allowed;
+        }
+
+        @media (max-width: 767px) {
+        .gallery .thumbs { gap: 8px; }
+        }
+
+
     </style>
 </head>
 <body>
@@ -67,7 +140,94 @@
     </header>
     <main>
         <p class="cursive">Lorem ipsum dolor sit, amet consectetur adipisicing elit. Iusto, aspernatur suscipit provident voluptate consequuntur eum maiores voluptatem dolorum temporibus quaerat impedit eos, quisquam dolorem voluptatibus fugiat asperiores. Illo, eveniet officiis.</p>
+
+        <!-- === Image Gallery === -->
+        <section class="gallery" id="gallery">
+        <!-- 4 个缩略图 -->
+        <div class="thumbs" role="list">
+            <img role="listitem" src="https://picsum.photos/id/1015/200/200" data-full="https://picsum.photos/id/1015/1200/800" alt="缩略图 1" aria-current="true">
+            <img role="listitem" src="https://picsum.photos/id/1025/200/200" data-full="https://picsum.photos/id/1025/1200/800" alt="缩略图 2">
+            <img role="listitem" src="https://picsum.photos/id/1035/200/200" data-full="https://picsum.photos/id/1035/1200/800" alt="缩略图 3">
+            <img role="listitem" src="https://picsum.photos/id/1045/200/200" data-full="https://picsum.photos/id/1045/1200/800" alt="缩略图 4">
+        </div>
+
+        <!-- 大图展示区 -->
+        <div class="viewer">
+            <img id="viewer-img" src="https://picsum.photos/id/1015/1200/800" alt="大图展示">
+        </div>
+
+        <!-- 控制按钮（可选：自动轮播） -->
+        <div class="controls">
+            <button id="prevBtn" type="button" aria-label="上一张">Prev</button>
+            <button id="playBtn" type="button" aria-label="开始自动播放">Play</button>
+            <button id="pauseBtn" type="button" aria-label="暂停自动播放" disabled>Pause</button>
+            <button id="nextBtn" type="button" aria-label="下一张">Next</button>
+        </div>
+        </section>
+
     </main>
     <footer></footer>
+        <script>
+    (function () {
+        const gallery = document.getElementById('gallery');
+        const thumbs = Array.from(gallery.querySelectorAll('.thumbs img'));
+        const viewer = document.getElementById('viewer-img');
+
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const playBtn = document.getElementById('playBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+
+        let current = 0;
+        let timer = null;
+        const INTERVAL = 3000; // 自动切换时间（毫秒）
+
+        // 切换到指定索引
+        function show(index) {
+        current = (index + thumbs.length) % thumbs.length;
+        const t = thumbs[current];
+        // 更新大图
+        viewer.src = t.dataset.full || t.src;
+        // 高亮当前缩略图
+        thumbs.forEach(img => img.removeAttribute('aria-current'));
+        t.setAttribute('aria-current', 'true');
+        }
+
+        // 绑定缩略图点击
+        thumbs.forEach((img, idx) => {
+        img.addEventListener('click', () => {
+            stopAuto();
+            show(idx);
+        });
+        });
+
+        // 上一/下一
+        prevBtn.addEventListener('click', () => { stopAuto(); show(current - 1); });
+        nextBtn.addEventListener('click', () => { stopAuto(); show(current + 1); });
+
+        // 自动播放控制
+        function startAuto() {
+        if (timer) return;
+        timer = setInterval(() => show(current + 1), INTERVAL);
+        playBtn.setAttribute('disabled', 'true');
+        pauseBtn.removeAttribute('disabled');
+        }
+
+        function stopAuto() {
+        if (!timer) return;
+        clearInterval(timer);
+        timer = null;
+        pauseBtn.setAttribute('disabled', 'true');
+        playBtn.removeAttribute('disabled');
+        }
+
+        playBtn.addEventListener('click', startAuto);
+        pauseBtn.addEventListener('click', stopAuto);
+
+        // 初始展示第一张
+        show(0);
+    })();
+    </script>
+
 </body>
 </html>
