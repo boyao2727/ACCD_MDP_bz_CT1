@@ -13,8 +13,8 @@ function setup() {
   posX = width * 0.5
   posY = height * 0.5
 
-  velX = -2
-  velY = 3
+  velX = random(-4, 4)
+  velY = random(-3, 3)
 }
 
 function draw(){
