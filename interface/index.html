@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gravity Fields – Body Tilt Interface</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main>
+    <h1>Gravity Fields</h1>
+    <p>Stand in front of the camera and lean your body left or right to tilt the particles.</p>
+    <p class="note">Tip: allow camera access in your browser.</p>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
+
+  <script src="https://unpkg.com/ml5@0.12.2/dist/ml5.min.js"></script>
+
+  <script>
+    console.log('p5 version:', window.p5 ? p5.prototype ? p5.prototype._setupDone : 'loaded' : 'not loaded');
+    console.log('ml5 object:', window.ml5);
+  </script>
+
+  <script src="sketch.js"></script>
+</body>
+</html>
