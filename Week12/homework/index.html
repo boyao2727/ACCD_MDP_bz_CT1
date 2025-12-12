@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ESP32 Serial Control – Processing</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      line-height: 1.6;
+    }
+    img, video {
+      width: 100%;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>ESP32 Serial Control – Processing</h1>
+
+<h2>Documentation</h2>
+
+<p>
+This project is based on the serial communication example from class.
+I started with the original code that sends two analog values and one button value from ESP32 to Processing.
+</p>
+
+<p>
+At home, I modified the Processing sketch to change a filled circle into a stroked ring.
+One sensor value controls the number of dash segments on the ring, changing smoothly from a dashed circle to a solid one.
+The other sensor value controls the stroke thickness of the ring.
+</p>
+
+<p>
+I also added a time-based interaction: when the button is pressed, the ring briefly scales up and then returns to its original size within 0.5 seconds.
+This change turns the button from a simple state switch into a trigger for animation.
+</p>
+
+<p>
+Currently, the two analog sensors work as expected, but the button does not trigger the animation.
+This is likely caused by a hardware wiring issue on the Arduino side, not the Processing logic.
+</p>
+
+<h2>Code Development</h2>
+
+<img src="image1.png" alt="Processing code with animation logic">
+
+<img src="image2.png" alt="Processing code with serial mapping">
+
+<h2>Final Result</h2>
+
+<video controls>
+  <source src="demo.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+</body>
+</html>
