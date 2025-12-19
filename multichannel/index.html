@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Multi-Channel Music Controller</title>
+  <style>
+    :root{
+      --bg:#0b0c10;
+      --card:#12141b;
+      --text:#e8eaf0;
+      --muted:#a9afbf;
+      --border:#242838;
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      line-height:1.5;
+    }
+    .wrap{
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 40px 18px 64px;
+    }
+    h1{
+      margin: 0 0 18px;
+      font-size: 32px;
+      letter-spacing: .2px;
+    }
+    .hint{
+      margin: 0 0 26px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .card{
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      margin: 14px 0;
+      overflow:hidden;
+    }
+    .media-title{
+      margin: 0 0 10px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+    img, video{
+      width:100%;
+      display:block;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background:#000;
+    }
+    pre{
+      margin:0;
+      white-space: pre;
+      overflow:auto;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #0f1117;
+      color: #e6e6e6;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    code{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <h1>Multi-Channel Music Controller</h1>
+    <p class="hint">Documentation of assignment: Multi-Channel Music Controller</p>
+
+    <!-- PNG (on top) -->
+    <section class="card">
+      <p class="media-title">Image (PNG)</p>
+      <img src="Frame 1 (2).png" alt="Multi-Channel Music Controller PNG" />
+    </section>
+
+    <!-- Video (below) -->
+    <section class="card">
+      <p class="media-title">Video</p>
+      <video controls playsinline preload="metadata">
+        <source src="8ada925710ae9e529fa26934ee4a101e_raw.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+    </section>
+
+    <!-- Processing code (bottom) -->
+    <section class="card">
+      <p class="media-title">Processing Code</p>
+      <pre><code>import processing.serial.*;
+
+import processing.sound.*;
+
+SoundFile BassDrum;
+SoundFile SnareDrum;
+SoundFile HiHat;
+SoundFile ClosedHiHat;
+
+float[] sensorValues = {0,0,0,0};
+String rawSerial = "";
+float masterVolume = 0.8;
+int volumeStep = 2;
+ArrayList&lt;Burst&gt; bursts = new ArrayList&lt;Burst&gt;();
+
+
+boolean [] drumFlags = {true, true, true, true};
+
+Serial connection;
+
+void setup(){
+  size(800, 800);
+  
+  BassDrum = new SoundFile(this, "BT0AADA.WAV");
+  SnareDrum = new SoundFile(this, "CLOP4.WAV");
+  HiHat = new SoundFile(this, "HHCDA.WAV");
+  ClosedHiHat = new SoundFile(this, "LT7DA.WAV");
+  printArray(Serial.list());
+  connection = new Serial(this, Serial.list()[2], 115200);
+  connection.bufferUntil('\n');
+  updateVolume();
+  bursts.clear();
+}
+
+void draw(){
+  background(0);
+  
+  for(int i = bursts.size() - 1; i &gt;= 0; i--){
+    Burst b = bursts.get(i);
+    b.display();
+    if(b.isDead()){
+      bursts.remove(i);
+    }
+  }
+}
+
+void serialEvent(Serial conn){
+  String incoming = conn.readString();
+  String [] values = split(trim(incoming),',');
+  printArray(values);
+  
+  rawSerial = incoming;
+  if(values.length == 4){
+  sensorValues[0] = float(values[0]);
+  sensorValues[1] = float(values[1]);
+  sensorValues[2] = float(values[2]);
+  sensorValues[3] = float(values[3]);
+}
+  
+  if(values. length == 4){
+    if(float(values[0]) &gt; 0){
+      if(!BassDrum.isPlaying()&amp;&amp;drumFlags[0]){
+        BassDrum.play();
+        spawnBurst();
+        drumFlags[0] = false;
+      }
+    }
+    else {
+      drumFlags[0] = true;
+    }
+    
+    if(float(values[1]) &gt; 0){
+      if(!SnareDrum.isPlaying()&amp;&amp;drumFlags[1]){
+        SnareDrum.play();
+        spawnBurst();
+        drumFlags[1] = false;
+      }
+    }
+    else {
+      drumFlags[1] = true;
+    }
+    
+    if(float(values[2]) &gt; 0){
+      if(!HiHat.isPlaying()&amp;&amp;drumFlags[2]){
+        HiHat.play();
+        spawnBurst();
+        drumFlags[2] = false;
+      }
+    }
+    else {
+      drumFlags[2] = true;
+    }
+    
+    if(float(values[3]) &gt; 0){
+      if(!ClosedHiHat.isPlaying()&amp;&amp;drumFlags[3]){
+        ClosedHiHat.play();
+        spawnBurst();
+        
+        volumeStep = (volumeStep + 1) % 4;
+        if(volumeStep == 0) masterVolume = 0.25;
+        if(volumeStep == 1) masterVolume = 0.5;
+        if(volumeStep == 2) masterVolume = 0.75;
+        if(volumeStep == 3) masterVolume = 1.0;
+        updateVolume();
+
+        drumFlags[3] = false;
+      }
+    }
+    else {
+      drumFlags[3] = true;
+    }
+  }
+}
+
+void updateVolume(){
+  BassDrum.amp(masterVolume);
+  SnareDrum.amp(masterVolume);
+  HiHat.amp(masterVolume);
+  ClosedHiHat.amp(masterVolume);
+}
+
+void spawnBurst(){
+  bursts.add(new Burst(random(width), random(height), random(20, 120), color(random(255), random(255), random(255))));
+}
+
+class Burst{
+  float x;
+  float y;
+  float r;
+  int c;
+  int bornMs;
+  
+  Burst(float x, float y, float r, int c){
+    this.x = x;
+    this.y = y;
+    this.r = r;
+    this.c = c;
+    bornMs = millis();
+  }
+  
+  void display(){
+    int age = millis() - bornMs;
+    float a = map(age, 0, 1000, 255, 0);
+    a = constrain(a, 0, 255);
+    noStroke();
+    fill(red(c), green(c), blue(c), a);
+    ellipse(x, y, r, r);
+  }
+  
+  boolean isDead(){
+    return millis() - bornMs &gt;= 1000;
+  }
+}</code></pre>
+    </section>
+  </div>
+</body>
+</html>
